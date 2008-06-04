@@ -1,0 +1,19 @@
+Changes
+linklist.c
+linklist.h
+Makefile.PL
+MANIFEST
+README
+TODO
+txml.c
+txml.h
+TinyXML.xs
+typemap
+t/TinyXML.t
+t/t.xml
+example.pl
+fallback/const-c.inc
+fallback/const-xs.inc
+lib/XML/TinyXML.pm
+lib/XML/TinyXML/Node.pm
+META.yml                                 Module meta-data (added by MakeMaker)
