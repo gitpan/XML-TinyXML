@@ -74,7 +74,6 @@ more than 10 modules to have a simple xml implementation.
 
 package XML::TinyXML;
 
-use 5.008008;
 use strict;
 use warnings;
 use Carp;
@@ -134,7 +133,7 @@ our @EXPORT = qw(
 	XmlSubstBranch
 );
 
-our $VERSION = '0.03';
+our $VERSION = '0.04';
 
 sub AUTOLOAD {
     # This AUTOLOAD is used to 'autoload' constants from the constant()
@@ -213,6 +212,13 @@ sub new {
 
 Adds an attribute to a specific $node
 
+$node MUST be an XML::TinyXML::Node object.
+
+$key is the name of the attribute
+$value is the value of the attribute
+
+This method is just an accessor. See XML::TinyXML::Node::addAttributes() instead.
+
 =cut
 sub addNodeAttribute {
     my ($self, $node, $key, $value) = @_;
@@ -224,9 +230,15 @@ sub addNodeAttribute {
 
 Removes from $node the attribute at $index if present.
 
+$node MUST be a XML::TinyXML::Node object.
+
+This method is just an accessor. See XML::TinyXML::Node::removeAttribute() instead.
+
 =cut
 sub removeNodeAttribute {
-    # TODO
+    my ($self, $node, $index) = @_;
+    return undef unless($node && UNIVERSAL::isa("XML::TinyXML::Node", $node));
+    return $node->removeAttribute($index);
 }
 
 =item * addRootNode ($name, $val, $attrs)o
