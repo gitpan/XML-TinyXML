@@ -6,30 +6,34 @@ XML::TinyXML - Little and efficient Perl module to manage xml data.
 
   use XML::TinyXML;
 
-  # first create an XML Context
+  # First create an XML Context
   $xml = XML::TinyXML->new();
     
-  $node = XML::TinyXML::Node->new("nodelabel", "somevalue");
-  # or maybe 
-  $attrs = { attr1 => v1, attr2 => v2 };
-  $node = XML::TinyXML::Node->new("nodelabel", "somevalue", $attrs);
+  # and add a root node
+  $xml->addRootNode("nodelabel", "somevalue", { attr1 => v1, attr2 => v2 });
 
-  $xml->addRootNode($node);
-
-  # or you could want to create the XML Context 
-  # specifying the root node directly at creation time
+  # if you want to reuse a previously created node object ...
+  #
+  # ( you can create one calling :
+  #    * %attrs = ( attr1 => v1, attr2 => v2 );
+  #    * $node = XML::TinyXML::Node->new("nodelabel", "somevalue", \%attrs);
+  # )
+  #
+  # the new XML Context can be created giving the root node directly to the constructor
   $xml = XML::TinyXML->new($node);
 
-  # or maybe 
-  $xml = XML::TinyXML->new("rootnode", "somevalue", { attr1 => v1, attr2 => v2 });
+  ######
+  
+  # A better (and easier) option is also to let the context constructor create the rootnode for you:
+  $xml = XML::TinyXML->new("rootnode", param => "somevalue", attrs => { attr1 => v1, attr2 => v2 });
 
-  # or we can just create an empty root node:
+  # an empty root node can be created as well:
   $xml = XML::TinyXML->new("rootnode");
 
-  # and then obtain a reference using the getNode() method
+  # You can later obtain a reference to the node object using the getNode() method
   $node = $xml->getNode("/rootnode");
 
-  # the leading '/' is optional ... since all paths will be absolute and 
+  # the leading '/' is optional ... since all paths will be considered absolute and 
   # first element is assumed to be always a root node
   $node = $xml->getNode("rootnode");
 
@@ -43,13 +47,13 @@ XML::TinyXML - Little and efficient Perl module to manage xml data.
   # An useful facility is loading/dumping of hashrefs from/to xml
   # for ex:
   $hashref = { some => 'thing', someother => 'thing' };
-  my $xml = XML::TinyXML->new($hashref, 'mystruct');
+  my $xml = XML::TinyXML->new($hashref, param => 'mystruct');
 
   # or to load on an existing XML::TinyXML object
   $xml->loadHash($hashref, 'mystruct');
 
   # we can also create and dump to string all at once :
-  my $xmlstring = XML::TinyXML->new($hashref, 'mystruct')->dump;
+  my $xmlstring = XML::TinyXML->new($hashref, param => 'mystruct')->dump;
 
   # to reload the hashref back
   my $hashref = $xml->toHash;
@@ -133,7 +137,7 @@ our @EXPORT = qw(
 	XmlSubstBranch
 );
 
-our $VERSION = '0.04';
+our $VERSION = '0.05';
 
 sub AUTOLOAD {
     # This AUTOLOAD is used to 'autoload' constants from the constant()
@@ -163,7 +167,7 @@ XSLoader::load('XML::TinyXML', $VERSION);
 
 # Preloaded methods go here.
 
-=item * new ($arg, $param, $attrs, $doctype)
+=item * new ($arg, %params)
 
 Creates a new XML::TinyXML object.
 
@@ -180,16 +184,18 @@ xml document.
 if $arg is an HASHREF or a scalar
 
 %params = (
-    param =>  if $root is an hashref, this will be
-                the parameter passed to loadHash()
-              if $root is a scalar, this will be 
-                the value of the root node, 
+    param =>  * if $root is an hashref, this will be
+                  name of the root node (it will be passed 
+                  as second argument to loadHash())
+              * if $root is a scalar, this will be 
+                  the value of the root node.
     attrs =>  attributes of the 'contextually added' $root node 
+    encoding => 
 );
 
 =cut
 sub new {
-    my ($class, $root, %params ) = @_; #$param, $attrs, $doctype) = @_;
+    my ($class, $root, %params ) = @_;
     my $self = {} ;
     bless($self, $class);
 
@@ -241,7 +247,7 @@ sub removeNodeAttribute {
     return $node->removeAttribute($index);
 }
 
-=item * addRootNode ($name, $val, $attrs)o
+=item * addRootNode ($name, $val, $attrs)
 
 Adds a new root node. 
 (This can be considered both as a new tree in the forest represented in the xml document
@@ -251,17 +257,38 @@ or as a new branch in the xml tree represented by the document itself)
 sub addRootNode {
     my ($self, $name, $val, $attrs) = @_;
 
-    $val = "" unless(defined($val));
+    $val = ""
+        unless(defined($val));
 
-    my $node = XML::TinyXML::Node->new($name, $val);
+    return $self->XML_BADARGS 
+        if($attrs && ref($attrs) ne "HASH");
 
-    return undef unless($node);
+    my $node = XML::TinyXML::Node->new($name, $val, $attrs);
 
-    if($attrs && ref($attrs) eq "HASH") {
-        $node->addAttributes(%$attrs)
-    }
+    return $self->XML_GENERIC_ERR
+        unless($node);
 
     return XmlAddRootNode($self->{_ctx}, $node->{_node});
+}
+
+sub addChildNode {
+    my ($self, $node, $name, $val, $attrs) = @_;
+
+    return $self->XML_BADARGS
+        unless (ref($node) && UNIVERSAL::isa("XML::TinyXML::Node", $node)); 
+
+    return $self->XML_BADARGS 
+        if($attrs && ref($attrs) ne "HASH");
+
+    $val = ""
+        unless(defined($val));
+
+    my $child = XML::TinyXML::Node->new($name, $val, $attrs, $node);
+
+    return $self->XML_GENERIC_ERR
+        unless($child);
+
+    return XmlAddChildNode($self->{_ctx}, $node->{_node});
 }
 
 =item * dump ()
