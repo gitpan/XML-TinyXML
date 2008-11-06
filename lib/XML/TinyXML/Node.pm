@@ -58,7 +58,7 @@ Reference to the underlying XmlNodePtr object (which is a binding to the XmlNode
 package XML::TinyXML::Node;
 
 use strict;
-our $VERSION = '0.04';
+our $VERSION = '0.06';
 
 =item * new ($entity, $value, $parent, %attrs)
 
@@ -106,7 +106,7 @@ sub new {
     bless($self, $class);
     $self->{_node} = $node;
     if($attrs && ref($attrs) eq "HASH") {
-        $self->AddAttributes(%$attrs);
+        $self->addAttributes(%$attrs);
     }
     $self;
 }

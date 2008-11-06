@@ -137,7 +137,7 @@ our @EXPORT = qw(
 	XmlSubstBranch
 );
 
-our $VERSION = '0.05';
+our $VERSION = '0.06';
 
 sub AUTOLOAD {
     # This AUTOLOAD is used to 'autoload' constants from the constant()
@@ -271,6 +271,13 @@ sub addRootNode {
     return XmlAddRootNode($self->{_ctx}, $node->{_node});
 }
 
+=item * addChildNode ($parent, $name, $val, $attrs)
+
+Adds a new child node. 
+This method is exactly like addRootNode but first argument must be a valid XML::TinyXML::Node
+which will be the parent of the newly created node
+
+=cut
 sub addChildNode {
     my ($self, $node, $name, $val, $attrs) = @_;
 
