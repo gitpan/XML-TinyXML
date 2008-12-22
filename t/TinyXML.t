@@ -60,6 +60,10 @@ ok( scalar(keys(%{$newhash->{hash}})) == 2, "nested hash number of members" );
 ok( $newhash->{hash}->{key1} eq $testhash->{hash}->{key1}, "nested hash member1" );
 ok( $newhash->{hash}->{key2} eq $testhash->{hash}->{key2}, "nested hash member2" );
 
+my $txml2 = XML::TinyXML->new();
+$txml2->addRootNode("nodelabel", "some'&'value", { attr1 => 'v>1', attr2 => 'v<2' });
+warn $txml2->dump;
+
 my $txml3 = XML::TinyXML->new();
 $txml3->loadFile("./t/t.xml");
 my $out = $txml3->dump;
