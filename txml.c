@@ -25,18 +25,43 @@ static char *dexmlize(char *string)
             switch (string[i]) {
                 case '&':
                     if (string[i+1] == '#') {
+                        char *marker;
+                        i+=2;
+                        marker = &string[i];
+                        if (string[i] >= '0' && string[i] <= '9' &&
+                            string[i+1] >= '0' && string[i+1] <= '9')
+                        {
+                            char chr = 0;
+                            i+=2;
+                            if (string[i] >= '0' && string[i] <= '9' && string[i+1] == ';') 
+                                i++;
+                            else if (string[i] == ';') 
+                                ;
+                            else
+                                return NULL;
+                            chr = (char)strtol(marker, NULL, 0);
+                            unescaped[p] = chr;
+                        }
                     } else if (strncmp(&string[i], "&amp;", 5) == 0) {
+                        i+=4;
                         unescaped[p] = '&';
                     } else if (strncmp(&string[i], "&lt;", 4) == 0) {
+                        i+=3;
                         unescaped[p] = '<';
                     } else if (strncmp(&string[i], "&gt;", 4) == 0) {
+                        i+=3;
                         unescaped[p] = '>';
                     } else if (strncmp(&string[i], "&quot;", 6) == 0) {
+                        i+=5;
                         unescaped[p] = '"';
                     } else if (strncmp(&string[i], "&apos;", 6) == 0) {
+                        i+=5;
                         unescaped[p] = '\'';
+                    } else {
+                        return NULL;
                     }
-                    break;;
+                    p++;
+                    break;
                 default:
                     unescaped[p] = string[i];
                     p++;
@@ -295,20 +320,19 @@ static XmlErr XmlStartHandler(TXml *xml, char *element, char **attr_names, char 
     char *nodename;
     
     if(!element || strlen(element) == 0)
-    {
-        res = XML_BADARGS;
-        goto _start_done;
-    }
+        return XML_BADARGS;
     
     // unescape read element to be used as nodename
     nodename = dexmlize(element);
+    if (!nodename)
+        return XML_BAD_CHARS;
+
     newNode = XmlCreateNode(nodename, NULL, xml->cNode);
     free(nodename);
     if(!newNode || !newNode->name)
     {
         /* XXX - ERROR MESSAGES HERE */
-        res = 1;
-        goto _start_done;
+        return XML_MEMORY_ERR;
     }
     /* handle attributes if present */
     if(attr_names && attr_values)
@@ -384,6 +408,8 @@ static XmlErr XmlValueHandler(TXml *xml, char *text)
 
         if(xml->cNode)  {
             char *rtext = dexmlize(text);
+            if (!rtext)
+                return XML_BAD_CHARS;
             XmlSetNodeValue(xml->cNode, rtext);
             free(rtext);
         } else {
@@ -796,7 +822,6 @@ char *XmlDumpBranch(TXml *xml, XmlNode *rNode, unsigned int depth)
         }
         else {
             // TODO - allow to specify a flag to determine if we want white spaces or not
-            //strcat(startTag, "> ");
             strcat(startTag, ">"); 
         }
         strcat(endTag, "</");
