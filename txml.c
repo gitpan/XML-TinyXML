@@ -1,5 +1,5 @@
 /*
- *  tinyxml.c
+ *  txml.c
  *
  *  Created by xant on 2/17/06.
  *
@@ -74,11 +74,14 @@ static char *dexmlize(char *string)
 static char *xmlize(char *string)
 {
     int i, p = 0;
-    int len = strlen(string);
+    int len;
+    int bufsize; 
     char *escaped = NULL;
     
+    len = strlen(string);
     if (string) {
-        escaped = calloc(1, len+1); // inlude null-byte
+        bufsize = len+1;
+        escaped = calloc(1, bufsize); // inlude null-byte
         for (i = 0; i < len; i++) {
             switch (string[i]) {
                 case '&':
@@ -86,8 +89,9 @@ static char *xmlize(char *string)
                 case '>':
                 case '"':
                 case '\'':
-                    len += 4;
-                    escaped = realloc(escaped, len+1);
+                    bufsize += 5;
+                    escaped = realloc(escaped, bufsize);
+                    memset(escaped+p, 0, bufsize-p);
                     sprintf(&escaped[p], "&#%02d;", string[i]);
                     p += 5;
                     break;
@@ -274,6 +278,17 @@ void XmlClearAttributes(XmlNode *node)
         }
     }
 
+}
+
+XmlNodeAttribute *XmlGetAttributeByName(XmlNode *node, char *name)
+{
+    int i;
+    for (i=1; i <= ListLength(node->attributes); i++) {
+        XmlNodeAttribute *attr = XmlGetAttribute(node, i);
+        if (strcmp(attr->name, name) == 0)
+            return attr;
+    }
+    return NULL;
 }
 
 XmlNodeAttribute *XmlGetAttribute(XmlNode *node, unsigned long index)
@@ -608,7 +623,15 @@ XmlErr XmlParseBuffer(TXml *xml, char *buf)
                             int quote = *p;
                             p++;
                             mark=p;
-                            while(*p!=quote && *p!=0) p++;
+                            while(*p!=0) {
+                                if (*p == quote) {
+                                    if (*(p+1) != quote) // handle quote escaping
+                                        break;
+                                    else
+                                        p++;
+                                }
+                                p++;
+                            }
                             if(*p==quote) {
                                 char *tmpVal = (char *)malloc(p-mark+2);
                                 strncpy(tmpVal, mark, p-mark);
@@ -793,10 +816,7 @@ char *XmlDumpBranch(TXml *xml, XmlNode *rNode, unsigned int depth)
                 strcat(startTag, attr->name);
                 strcat(startTag, "=\"");
                 strcat(startTag, value);
-                if(i < nAttrs)
-                    strcat(startTag, "\" ");
-                else
-                    strcat(startTag, "\"");
+                strcat(startTag, "\"");
                 if (value)
                     free(value);
             }
@@ -819,8 +839,7 @@ char *XmlDumpBranch(TXml *xml, XmlNode *rNode, unsigned int depth)
                     }
                 }
             }
-        }
-        else {
+        } else {
             // TODO - allow to specify a flag to determine if we want white spaces or not
             strcat(startTag, ">"); 
         }
