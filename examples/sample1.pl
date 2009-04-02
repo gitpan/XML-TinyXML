@@ -1,5 +1,4 @@
 #!/usr/bin/perl
-use strict;
 use XML::TinyXML;
 use Data::Dumper;
 $Data::Dumper::Sortkeys = 1;
@@ -41,7 +40,6 @@ warn Dumper($hash);
 print "Reimported hash: \n";
 warn Dumper($txml->toHash);
 undef($txml);
-
 #my $txml2 = XML::TinyXML->new();
 #$txml2->loadBuffer($txml->dump);
 
@@ -57,3 +55,5 @@ print $testnode->name ."\n";
 foreach my $k ($testnode->children) {
     print $k->type . "\n";
 }
+
+
