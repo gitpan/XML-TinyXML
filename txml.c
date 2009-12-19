@@ -232,8 +232,16 @@ XmlGetNodeValue(XmlNode *node)
         return NULL;
     return node->value;
 }
+ 
+void
+XmlRemoveChildNodeAtIndex(XmlNode *parent, unsigned long index)
+{
+    XmlNode *p = FetchValue(parent->children, index);
+    p->parent = NULL;
+    XmlSetNodePath(p, NULL);
+}
 
-static void
+void
 XmlRemoveChildNode(XmlNode *parent, XmlNode *child)
 {
     int i;
@@ -777,12 +785,13 @@ XmlParseFile(TXml *xml, char *path)
     if(fileStat.st_size>0) {
         inFile=fopen(path, "r");
         if(inFile) {
+            int rc;
             if(XmlFileLock(inFile) != XML_NOERR) {
                 fprintf(stderr, "Can't lock %s for opening ", path);
                 return -1;
             }
             buffer=(char *)malloc(fileStat.st_size+1);
-            fread(buffer, 1, fileStat.st_size, inFile);
+            rc = fread(buffer, 1, fileStat.st_size, inFile);
             buffer[fileStat.st_size]=0;
             err=XmlParseBuffer(xml, buffer);
             free(buffer);
@@ -880,7 +889,7 @@ XmlDumpBranch(TXml *xml, XmlNode *rNode, unsigned int depth)
             }
         }
     }
-    if(value || XmlCountChildren(rNode)) {
+    if((value && *value) || XmlCountChildren(rNode)) {
         if(XmlCountChildren(rNode) > 0) {
             strcat(startTag, ">\n");
             for(n = 0; n < depth; n++)
@@ -973,6 +982,7 @@ XmlSave(TXml *xml, char *xmlFile)
 
     if (stat(xmlFile, &fileStat) == 0) {
         if(fileStat.st_size>0) { /* backup old profiles */
+            int rc;
             saveFile=fopen(xmlFile, "r");
             if(!saveFile) {
                 fprintf(stderr, "Can't open %s for reading !!", xmlFile);
@@ -983,7 +993,7 @@ XmlSave(TXml *xml, char *xmlFile)
                 return XML_GENERIC_ERR;
             }
             backup = (char *)malloc(fileStat.st_size+1);
-            fread(backup, 1, fileStat.st_size, saveFile);
+            rc = fread(backup, 1, fileStat.st_size, saveFile);
             backup[fileStat.st_size]=0;
             XmlFileUnlock(saveFile);
             fclose(saveFile);

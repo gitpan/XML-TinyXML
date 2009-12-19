@@ -98,6 +98,21 @@ void XmlDestroyNode(XmlNode *node);
     @return return XML_NOERR on success, error code otherwise 
 */
 XmlErr XmlAddChildNode(XmlNode *parent,XmlNode *child);
+
+/*** 
+    @brief Remvoe XmlNode *child from the children list of XmlNode *node 
+    @arg the parent node
+    @arg the child node
+*/
+void XmlRemoveChildNode(XmlNode *parent, XmlNode *child);
+
+/*** 
+    @brief Remvoe child at given index from the children list of XmlNode *node 
+    @arg the parent node
+    @arg the child index
+*/
+void XmlRemoveChildNodeAtIndex(XmlNode *node, unsigned long index);
+
 /***
     @brief Makes XmlNode *node a root node in context represented by TXml *xml 
     @arg the xml context pointer
