@@ -34,3 +34,4 @@ Revision history for Perl extension TinyXML.
          as for defining encoding, whitespace handling and any other 
          optional behaviour which makes sense to take into account when 
          exporting)
+0.13  - switched to macro-based linklist implementation 

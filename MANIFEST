@@ -1,12 +1,11 @@
 Changes
-linklist.c
-linklist.h
 Makefile.PL
 MANIFEST
 README
 TODO
 txml.c
 txml.h
+bsd_queue.h
 TinyXML.xs
 typemap
 t/001_basic.t
