@@ -18,6 +18,7 @@
 #define XML_MEMORY_ERR -5
 #define XML_LINKLIST_ERR -6
 #define XML_BAD_CHARS -7
+#define XML_MROOT_ERR -8
 
 #include "bsd_queue.h"
 #include <stdio.h>
@@ -55,6 +56,8 @@
 
 #endif // WIN32
 
+struct __XmlNode;
+
 /**
     @type XmlNodeAttribute
     @brief One attribute associated to an element 
@@ -62,6 +65,7 @@
 typedef struct __XmlNodeAttribute {
     char *name; ///< the attribute name
     char *value; ///< the attribute value
+    struct __XmlNode *node;
     TAILQ_ENTRY(__XmlNodeAttribute) list;
 } XmlNodeAttribute;
 
@@ -79,12 +83,16 @@ typedef struct __XmlNode {
     TAILQ_ENTRY(__XmlNode) siblings;
 } XmlNode;
 
-typedef struct {
+TAILQ_HEAD(nodelistHead, __XmlNode);
+
+typedef struct __TXml {
     XmlNode *cNode;
     TAILQ_HEAD(,__XmlNode) rootElements;
     char *head;
 } TXml;
 
+XmlNode *XmlNextSibling(XmlNode *node);
+XmlNode *XmlPrevSibling(XmlNode *node);
 /***
     @brief allocates memory for an XmlNode. In case of errors NULL is returned 
     @arg name of the new node

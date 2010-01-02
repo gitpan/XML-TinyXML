@@ -2,14 +2,29 @@
 #include "perl.h"
 #include "XSUB.h"
 
-#include <linklist.h>
 #include <txml.h>
 
 #include "const-c.inc"
 
+extern int TXML_ALLOW_MULTIPLE_ROOTNODES;
+
 MODULE = XML::TinyXML        PACKAGE = XML::TinyXML        
 
 INCLUDE: const-xs.inc
+
+int 
+TXML_ALLOW_MULTIPLE_ROOTNODES(__value = NO_INIT)
+    UV __value
+    PROTOTYPE: $
+    CODE:
+    RETVAL = TXML_ALLOW_MULTIPLE_ROOTNODES;
+    if (items > 0) {
+        TXML_ALLOW_MULTIPLE_ROOTNODES = __value;
+    }
+    OUTPUT:
+    RETVAL
+
+
 
 int
 XmlAddAttribute(node, name, val)
@@ -40,6 +55,14 @@ int
 XmlAddChildNode(parent, child)
     XmlNode *parent
     XmlNode *child
+
+XmlNode *
+XmlNextSibling(node)
+    XmlNode *node
+
+XmlNode *
+XmlPrevSibling(node)
+    XmlNode *node
 
 int
 XmlAddRootNode(xml, node)
@@ -206,6 +229,15 @@ value(THIS, __value = NO_INIT)
     OUTPUT:
     RETVAL
 
+XmlNode *
+node(THIS)
+    XmlNodeAttribute *THIS
+    PROTOTYPE: $
+    CODE:
+    RETVAL = THIS->node;
+    OUTPUT:
+    RETVAL
+
 MODULE = XML::TinyXML        PACKAGE = XmlNode        
 
 XmlNode *
@@ -336,9 +368,9 @@ cNode(THIS, __value = NO_INIT)
     XmlNode *__value
     PROTOTYPE: $;$
     CODE:
+    RETVAL = THIS->cNode;
     if (items > 1)
         THIS->cNode = __value;
-    RETVAL = THIS->cNode;
     OUTPUT:
     RETVAL
 

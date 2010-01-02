@@ -58,7 +58,7 @@ Reference to the underlying XmlNodePtr object (which is a binding to the XmlNode
 package XML::TinyXML::Node;
 
 use strict;
-our $VERSION = '0.13';
+our $VERSION = '0.15';
 
 =item * new ($entity, $value, $parent, %attrs)
 
@@ -261,9 +261,40 @@ sub value {
     return $self->{_node}->value;
 }
 
+=item * vpath ()
+
+Get the absolute path of a node.
+
+=cut
+sub path {
+    my $self = shift;
+    return $self->{_node}->path;
+}
+
+=item * getAttribute ($index)
+
+=cut
+sub getAttribute {
+    my ($self, $index) = @_;
+    my $attr = XML::TinyXML::XmlGetAttribute($self->{_node}, $index);
+    return XML::TinyXML::NodeAttribute->new($attr) if ($attr);
+}
+
+=item * getAttributes ()
+
+=cut
+sub getAttributes {
+    my ($self) = shift;
+    my @res;
+    for(my $i = 1; $i <= XML::TinyXML::XmlCountAttributes($self->{_node}); $i++) {
+        push @res, XML::TinyXML::NodeAttribute->new(XML::TinyXML::XmlGetAttribute($self->{_node}, $i));
+    }
+    return wantarray?@res:\@res;
+}
+
 =item * attributes ()
 
-Read-Only method to obtain an hashref to the attributes of this node
+Read-Only method to obtain an hashref of the attributes in this node
 
 =cut
 sub attributes {
@@ -297,6 +328,15 @@ sub getChildNodeByName {
     my ($self, $name) = @_;
     return undef unless($name);
     return XML::TinyXML::Node->new(XML::TinyXML::XmlGetChildNodeByName($self->{_node}, $name));
+}
+
+=item * getChildrenByName ($name)
+
+Alias for getChildNodeByName
+
+=cut
+sub getChildrenByName {
+    return getChildNodeByName(@_);
 }
 
 =item * countChildren ()
@@ -336,15 +376,25 @@ sub addChildNode {
     return XML::TinyXML::XmlAddChildNode($self->{_node}, $child->{_node});
 }
 
+=item * removeChildNode ($index)
+
+Removes child node at provided $index.
+
+=cut
 sub removeChildNode {
     my ($self, $index) = @_;
-    XmlRemoveChildNode($self->{_node}, $index);
+    XML::TinyXML::XmlRemoveChildNode($self->{_node}, $index);
 }
 
+=item * removeAllChildren
+
+Removes all children from this node
+
+=cut
 sub removeAllChildren {
     my ($self) = @_;
     for (my $i = 1; $i <= $self->countChildren; $i++) {
-        XmlRemoveChildNode($self->{_node}, $i);
+        XML::TinyXML::XmlRemoveChildNode($self->{_node}, $i);
     }
 }
 
@@ -356,6 +406,28 @@ Read-Only method which returns the parent node in the form of a XML::TinyXML::No
 sub parent {
     my ($self) = @_;
     return XML::TinyXML::Node->new($self->{_node}->parent);
+}
+
+=item * nextSibling ()
+
+Returns the next sibling of this node (if any),
+undef otherwise.
+
+=cut
+sub nextSibling {
+    my ($self) = @_;
+    return XML::TinyXML::Node->new(XML::TinyXML::XmlNextSibling($self->{_node}));
+}
+
+=item * prevSibling ()
+
+Returns the previous sibling of this node (if any),
+undef otherwise.
+
+=cut
+sub prevSibling {
+    my ($self) = @_;
+    return XML::TinyXML::Node->new(XML::TinyXML::XmlPrevSibling($self->{_node}));
 }
 
 =item * type ()

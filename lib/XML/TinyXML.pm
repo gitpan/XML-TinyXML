@@ -108,6 +108,7 @@ our @EXPORT = qw(
 	XML_NOERR
 	XML_OPEN_FILE_ERR
 	XML_PARSER_GENERIC_ERR
+        XML_MROOT_ERR
         XML_NODETYPE_SIMPLE
         XML_NODETYPE_COMMENT
         XML_NODETYPE_CDATA
@@ -128,8 +129,10 @@ our @EXPORT = qw(
 	XmlGetChildNodeByName
 	XmlGetNode
 	XmlGetNodeValue
+        XmlNextSibling
 	XmlParseBuffer
 	XmlParseFile
+        XmlPrevSibling
 	XmlRemoveBranch
         XmlRemoveChildNode
         XmlRemoveChildNodeAtIndex
@@ -139,7 +142,7 @@ our @EXPORT = qw(
 	XmlSubstBranch
 );
 
-our $VERSION = '0.13';
+our $VERSION = '0.15';
 
 sub AUTOLOAD {
     # This AUTOLOAD is used to 'autoload' constants from the constant()
@@ -352,8 +355,8 @@ Dump the xml structure represented internally in the form of an hashref
 sub toHash {
     my ($self) = shift;
     # only first branch will be parsed ... This means that if multiple root 
-    # nodes are present, only the first one will be parsed and translated 
-    # into an hashred
+    # nodes are present (which is anyway not allowed by the xml spec), only 
+    # the first one will be parsed and translated into an hashref
     my $node = $self->getRootNode(1);
     return $node->toHash;
 }
@@ -507,17 +510,22 @@ Returns an XML::TinyXML::Node object if there is such a child, undef otherwise
 =cut
 sub getChildNodeByName {
     my ($self, $node, $name) = @_;
-    if($node) {
+    if ($node) {
         return XML::TinyXML::Node->new(XmlGetChildNodeByName($node, $name));
     } else {
         my $count = XmlCountBranches($self->{_ctx});
         for (my $i = 0 ; $i < $count; $i++ ){
             my $res = XmlGetChildNodeByName(XmlGetBranch($self->{_ctx}, $i), $name);
-            return XML::TinyXML::Node->new($res) if($res) 
+            return XML::TinyXML::Node->new($res) if($res);
 
         }
     }
     return undef;
+}
+
+sub cNode {
+    my ($self, $value) = @_;
+    return $self->{_ctx}->cNode($value);
 }
 
 =item * save ($path)
@@ -532,6 +540,10 @@ sub save {
     return XmlSave($self->{_ctx}, $path);
 }
 
+sub allowMultipleRootNodes {
+    my ($self, $val) = @_;
+    return TXML_ALLOW_MULTIPLE_ROOTNODES($val);
+}
 sub DESTROY {
     my $self = shift;
     XmlDestroyContext($self->{_ctx})
@@ -559,6 +571,7 @@ None by default.
   XML_PARSER_GENERIC_ERR
   XML_UPDATE_ERR
   XML_BAD_CHARS
+  XML_MROOT_ERR
   XML_NODETYPE_SIMPLE
   XML_NODETYPE_COMMENT
   XML_NODETYPE_CDATA
