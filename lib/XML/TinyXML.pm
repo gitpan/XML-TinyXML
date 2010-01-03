@@ -143,7 +143,7 @@ our @EXPORT = qw(
 	XmlSubstBranch
 );
 
-our $VERSION = '0.17';
+our $VERSION = '0.18';
 
 sub AUTOLOAD {
     # This AUTOLOAD is used to 'autoload' constants from the constant()
@@ -348,7 +348,7 @@ sub loadHash {
     return $cur->loadHash($hash);
 }
 
-=item * toHAsh ()
+=item * toHash ()
 
 Dump the xml structure represented internally in the form of an hashref
 
