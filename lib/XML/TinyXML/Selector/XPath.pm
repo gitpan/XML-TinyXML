@@ -42,6 +42,19 @@ XML::TinyXML::Selector::XPath - XPath-compliant selector for XML::TinyXML
   @res = $selector->select('//parent[1]/.');
   @res = $selector->select('//blah/.');
 
+  # or using the unabbreviated syntax:
+
+  @res = $selector->select('/descendant-or-self::node()/child::parent');
+  @res = $selector->select('/descendant-or-self::node()/child::child*');
+  @res = $selector->select('/child::parent[2]/child::blah/parent::node()');
+  @res = $selector->select('/descendant-or-self::node()/child::blah/parent::node()');
+  @res = $selector->select('/descendant-or-self::node()/child::parent[1]/parent::node()');
+  @res = $selector->select('/descendant-or-self::node()/child::parent[1]/self::node()');
+  @res = $selector->select('/descendant-or-self::node()/child::blah/self::node()');
+
+
+  # refer to XPath documentation for further examples and details on the supported syntax:
+  # ( http://www.w3.org/TR/xpath )
 =back
 
 =head1 DESCRIPTION
@@ -67,15 +80,10 @@ use XML::TinyXML::Selector::XPath::Context;
 use XML::TinyXML::Selector::XPath::Functions;
 use XML::TinyXML::Selector::XPath::Axes;
 
-our $VERSION = '0.21';
-
-
-sub unimplemented
-{
-    die "Unimplemented";
-}
+our $VERSION = '0.23';
 
 #our @ExprTokens = ('(', ')', '[', ']', '.', '..', '@', ',', '::');
+
 my @NODE_FUNCTIONS = qw(
     last
     position
@@ -264,6 +272,9 @@ sub _select_unabbreviated {
     if ($expr =~ /^\// and !$recurse) { # absolute path has been requested
         $self->context->{items} = [$self->{_xml}->rootNodes()];
     }
+    # XPath works only in single-root mode 
+    # (which is the only allowed mode by the xml spec anyway)
+    my $state = $self->{_xml}->allowMultipleRootNodes(0);
     #shift(@tokens)
     #    if (!$tokens[0] and $recurse);
     my $token = shift @tokens;
@@ -430,6 +441,7 @@ sub _select_unabbreviated {
     if (@tokens) {
         return $self->_select_unabbreviated(join('/', @tokens), 1); # recursion here
     }
+    $self->{_xml}->allowMultipleRootNodes($state);
     return wantarray?@{$self->context->items}:$self->context->items;
 }
 

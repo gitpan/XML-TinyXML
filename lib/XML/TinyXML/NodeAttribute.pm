@@ -45,7 +45,7 @@ package XML::TinyXML::NodeAttribute;
  
 use strict;
 
-our $VERSION = "0.21";
+our $VERSION = "0.23";
 
 =item new ($attr)
 
@@ -66,30 +66,26 @@ Get/Set the name of the attribute
 =cut
 sub name {
     my ($self, $newName) = @_;
-    my $name = $self->{_attr}->name;
-    if ($newName) {
-        $self->{_attr}->name($newName);
-    }
-    return $name;
+    return defined($newName)
+           ? $self->{_attr}->name($newName)
+           : $self->{_attr}->name;
 }
 
-=item value ([$newName])
+=item value ([$newValue])
 
 Get/Set the value of the attribute
 
 =cut
 sub value {
     my ($self, $newValue) = @_;
-    my $value = $self->{_attr}->value;
-    if ($newValue) {
-        $self->{_attr}->value($newValue);
-    }
-    return $value;
+    return defined($newValue)
+           ? $self->{_attr}->value($newValue)
+           : $self->{_attr}->value;
 }
 
-=item value ([$newName])
+=item node (])
 
-Get/Set the XML::TinyXML::Node to which this attribute belongs
+Get the XML::TinyXML::Node to which this attribute belongs
 
 =cut
 sub node {

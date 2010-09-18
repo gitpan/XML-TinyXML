@@ -65,7 +65,7 @@ Reference to the underlying XmlNodePtr object (which is a binding to the XmlNode
 package XML::TinyXML::Node;
 
 use strict;
-our $VERSION = '0.21';
+our $VERSION = '0.23';
 
 =item * new ($entity, $value, $parent, %attrs)
 
@@ -95,7 +95,8 @@ sub new {
     if(ref($entity) && UNIVERSAL::isa($entity, "XmlNodePtr")) {
         $node = $entity;
     } else {
-        $node = XML::TinyXML::XmlCreateNode($entity, $value || "");
+        $value = "" unless defined($value);
+        $node = XML::TinyXML::XmlCreateNode($entity, $value);
     }
     return undef unless($node);
     if(ref($parent)) {
@@ -446,6 +447,33 @@ undef otherwise.
 sub prevSibling {
     my ($self) = @_;
     return XML::TinyXML::Node->new(XML::TinyXML::XmlPrevSibling($self->{_node}));
+}
+
+sub namespace {
+    my ($self) = @_;
+    return XML::TinyXML::XmlGetNodeNamespace($self->{_node});
+}
+
+sub knownNamespaces {
+    my ($self) = @_;
+    return wantarray
+           ? @{$self->{_node}->knownNamespaces}
+           : $self->{_node}->knownNamespaces;
+}
+
+sub myNamespace {
+    my ($self) = @_;
+    return $self->{_node}->ns;
+}
+
+sub hineritedNamespace {
+    my ($self) = @_;
+    return $self->{_node}->hns;
+}
+
+sub defaultNamespace {
+    my ($self) = @_;
+    return $self->{_node}->cns;
 }
 
 =item * type ()
