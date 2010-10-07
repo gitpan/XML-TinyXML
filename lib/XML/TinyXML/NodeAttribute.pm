@@ -45,7 +45,7 @@ package XML::TinyXML::NodeAttribute;
  
 use strict;
 
-our $VERSION = "0.25";
+our $VERSION = "0.27";
 
 =item new ($attr)
 
