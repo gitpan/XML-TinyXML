@@ -198,7 +198,7 @@ our @EXPORT = qw(
         XmlSetCurrentNamespace
 );
 
-our $VERSION = '0.29';
+our $VERSION = '0.30';
 
 sub AUTOLOAD {
     # This AUTOLOAD is used to 'autoload' constants from the constant()
@@ -282,6 +282,14 @@ sub new {
     }
     
     return $self;
+}
+
+sub open {
+    my ($class, $file) = @_;
+    my $self = $class->new();
+    return $self->loadFile($file) == $self->XML_NOERR
+           ? $self
+           : undef;
 }
 
 =item * addNodeAttribute ($node, $key, $value)
