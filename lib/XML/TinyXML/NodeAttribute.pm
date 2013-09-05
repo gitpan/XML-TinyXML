@@ -44,8 +44,9 @@ Reference to the underlying XmlNodeAttributePtr object (which is a binding to th
 package XML::TinyXML::NodeAttribute;
  
 use strict;
+use warnings;
 
-our $VERSION = "0.31";
+our $VERSION = "0.32";
 
 =item new ($attr)
 

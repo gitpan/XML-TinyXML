@@ -1,8 +1,10 @@
 # Internal use only
 package XML::TinyXML::Selector::XPath::Context;
 
+use strict;
+use warnings;
 
-our $VERSION = '0.31';
+our $VERSION = '0.32';
 
 our %Operators = (
  '+'   => sub {  $_[0] +  $_[1]  },

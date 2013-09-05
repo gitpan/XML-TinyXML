@@ -55,6 +55,7 @@ XML::TinyXML::Selector::XPath - XPath-compliant selector for XML::TinyXML
 
   # refer to XPath documentation for further examples and details on the supported syntax:
   # ( http://www.w3.org/TR/xpath )
+
 =back
 
 =head1 DESCRIPTION
@@ -75,12 +76,13 @@ XPath-compliant selector for XML::TinyXML
 package XML::TinyXML::Selector::XPath;
 
 use strict;
+use warnings;
 use base qw(XML::TinyXML::Selector);
 use XML::TinyXML::Selector::XPath::Context;
 use XML::TinyXML::Selector::XPath::Functions;
 use XML::TinyXML::Selector::XPath::Axes;
 
-our $VERSION = '0.31';
+our $VERSION = '0.32';
 
 #our @ExprTokens = ('(', ')', '[', ']', '.', '..', '@', ',', '::');
 

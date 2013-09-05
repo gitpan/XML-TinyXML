@@ -1,9 +1,11 @@
 # Internal use only
 package XML::TinyXML::Selector::XPath::Functions;
 
+use strict;
+use warnings;
 use POSIX qw(:sys_types_h);
 
-our $VERSION = "0.31";
+our $VERSION = "0.32";
 
 # NODE FUNCTIONS
 

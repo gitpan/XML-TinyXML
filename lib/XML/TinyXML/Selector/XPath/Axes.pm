@@ -1,9 +1,10 @@
 package XML::TinyXML::Selector::XPath::Axes;
 
 use strict;
+use warnings;
 use XML::TinyXML::NodeAttribute;
 
-our $VERSION = "0.31";
+our $VERSION = "0.32";
 
 sub child {
     my ($class, $context) = @_;

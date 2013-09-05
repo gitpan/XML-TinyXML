@@ -8,6 +8,8 @@
 #include "txml.h"
 #include "string.h"
 #include "stdlib.h"
+#include "unistd.h"
+#include "ctype.h"
 #include "iconv.h"
 #include "errno.h"
 
@@ -425,7 +427,7 @@ XmlUpdateKnownNamespaces(XmlNode *node)
     // first empty actual list
     if (!TAILQ_EMPTY(&node->knownNamespaces)) {
         XmlNamespaceSet *oldItem;
-        while(oldItem = TAILQ_FIRST(&node->knownNamespaces)) {
+        while((oldItem = TAILQ_FIRST(&node->knownNamespaces))) {
             TAILQ_REMOVE(&node->knownNamespaces, oldItem, next);
             free(oldItem);
         }
@@ -1148,6 +1150,74 @@ _parser_err:
     return err;
 }
 
+#ifdef WIN32
+//************************************************************************
+// BOOL W32LockFile (FILE* filestream)
+//
+// locks the specific file for exclusive access, nonblocking
+//
+// returns 0 on success
+//************************************************************************
+static BOOL
+W32LockFile (FILE* filestream)
+{
+    BOOL res = TRUE;
+    HANDLE hFile = INVALID_HANDLE_VALUE;
+    unsigned long size = 0;
+    int fd = 0;
+
+    // check params
+    if (!filestream)
+        goto __exit;
+
+    // get handle from stream
+    fd = _fileno (filestream);
+    hFile = (HANDLE)_get_osfhandle(fd);
+
+    // lock file until access is permitted
+    size = GetFileSize(hFile, NULL);
+    res = LockFile (hFile, 0, 0, size, 0);
+    if (res)
+        res = 0;
+__exit:
+    return res;
+}
+
+//************************************************************************
+// BOOL W32UnlockFile (FILE* filestream)
+//
+// unlocks the specific file locked by W32LockFile
+//
+// returns 0 on success
+//************************************************************************
+static BOOL
+W32UnlockFile (FILE* filestream)
+{
+    BOOL res = TRUE;
+    HANDLE hFile = INVALID_HANDLE_VALUE;
+    unsigned long size = 0;
+    int tries = 0;
+    int fd = 0;
+
+    // check params
+    if (!filestream)
+        goto __exit;
+
+    // get handle from stream
+    fd = _fileno (filestream);
+    hFile = (HANDLE)_get_osfhandle(fd);
+
+    // unlock
+    size = GetFileSize(hFile, NULL);
+    res = UnlockFile (hFile, 0, 0, size, 0);
+    if (res)
+        res = 0;
+
+__exit:
+    return res;
+}
+#endif // #ifdef WIN32
+
 static XmlErr
 XmlFileLock(FILE *file)
 {
@@ -1207,7 +1277,7 @@ XmlParseFile(TXml *xml, char *path)
         inFile = fopen(path, "r");
         if(inFile) {
             iconv_t ich;
-            size_t cb, ilen, olen;
+            size_t rb, cb, ilen, olen;
             char *out, *iconvIn, *iconvOut;
             char *encoding_from = NULL;
 
@@ -1217,7 +1287,11 @@ XmlParseFile(TXml *xml, char *path)
             }
             olen = ilen = fileStat.st_size;
             buffer = (char *)malloc(ilen+1);
-            fread(buffer, 1, ilen, inFile);
+            rb = fread(buffer, 1, ilen, inFile);
+            if (ilen != rb) {
+                fprintf(stderr, "Can't read %s content", path);
+                return -1;
+            }
             buffer[ilen] = 0;
             switch(detect_encoding(buffer)) {
                 case ENCODING_UTF16LE:
@@ -1572,6 +1646,7 @@ XmlDump(TXml *xml, int *outlen)
 XmlErr
 XmlSave(TXml *xml, char *xmlFile)
 {
+    size_t rb;
     struct stat fileStat;
     FILE *saveFile = NULL;
     char *dump = NULL;
@@ -1593,7 +1668,11 @@ XmlSave(TXml *xml, char *xmlFile)
                 return XML_GENERIC_ERR;
             }
             backup = (char *)malloc(fileStat.st_size+1);
-            fread(backup, 1, fileStat.st_size, saveFile);
+            rb = fread(backup, 1, fileStat.st_size, saveFile);
+            if (rb != fileStat.st_size) {
+                fprintf(stderr, "Can't read %s content", xmlFile);
+                return -1;
+            }
             backup[fileStat.st_size] = 0;
             XmlFileUnlock(saveFile);
             fclose(saveFile);
@@ -2010,72 +2089,4 @@ XmlSetNodeNamespace(XmlNode *node, XmlNamespace *ns) {
     node->ns = ns;
     return XML_NOERR;
 }
-
-#ifdef WIN32
-//************************************************************************
-// BOOL W32LockFile (FILE* filestream)
-//
-// locks the specific file for exclusive access, nonblocking
-//
-// returns 0 on success
-//************************************************************************
-static BOOL
-W32LockFile (FILE* filestream)
-{
-    BOOL res = TRUE;
-    HANDLE hFile = INVALID_HANDLE_VALUE;
-    unsigned long size = 0;
-    int fd = 0;
-
-    // check params
-    if (!filestream)
-        goto __exit;
-
-    // get handle from stream
-    fd = _fileno (filestream);
-    hFile = (HANDLE)_get_osfhandle(fd);
-
-    // lock file until access is permitted
-    size = GetFileSize(hFile, NULL);
-    res = LockFile (hFile, 0, 0, size, 0);
-    if (res)
-        res = 0;
-__exit:
-    return res;
-}
-
-//************************************************************************
-// BOOL W32UnlockFile (FILE* filestream)
-//
-// unlocks the specific file locked by W32LockFile
-//
-// returns 0 on success
-//************************************************************************
-static BOOL
-W32UnlockFile (FILE* filestream)
-{
-    BOOL res = TRUE;
-    HANDLE hFile = INVALID_HANDLE_VALUE;
-    unsigned long size = 0;
-    int tries = 0;
-    int fd = 0;
-
-    // check params
-    if (!filestream)
-        goto __exit;
-
-    // get handle from stream
-    fd = _fileno (filestream);
-    hFile = (HANDLE)_get_osfhandle(fd);
-
-    // unlock
-    size = GetFileSize(hFile, NULL);
-    res = UnlockFile (hFile, 0, 0, size, 0);
-    if (res)
-        res = 0;
-
-__exit:
-    return res;
-}
-#endif // #ifdef WIN32
 
