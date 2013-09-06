@@ -198,7 +198,7 @@ our @EXPORT = qw(
         XmlSetCurrentNamespace
 );
 
-our $VERSION = '0.32';
+our $VERSION = '0.33';
 
 sub AUTOLOAD {
     # This AUTOLOAD is used to 'autoload' constants from the constant()
@@ -772,6 +772,11 @@ sub ignoreWhiteSpaces {
     return defined($val)
            ? $self->{_ctx}->ignoreWhiteSpaces($val)
            : $self->{_ctx}->ignoreWhiteSpaces;
+}
+
+sub hasIconv {
+    my $self = shift;
+    return $self->{_ctx}->hasIconv;
 }
 
 sub DESTROY {
