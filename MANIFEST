@@ -35,3 +35,4 @@ lib/XML/TinyXML/Selector.pm
 lib/XML/TinyXML.pm
 examples/sample1.pl
 META.yml                                 Module meta-data (added by MakeMaker)
+META.json                                Module JSON meta-data (added by MakeMaker)
